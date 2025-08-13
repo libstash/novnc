@@ -1,8 +1,8 @@
-ARG ALPINE_VERSION=3.22
+ARG ALPINE_VERSION
 
 FROM alpine:${ALPINE_VERSION}
 
-ARG IMAGE_VERSION=1.0.0
+ARG IMAGE_VERSION
 ARG BUILD_DATE
 ARG ALPINE_VERSION
 ARG NOVNC_VERSION
@@ -28,14 +28,12 @@ COPY docker-entrypoint.sh /
 RUN ln -s /usr/share/novnc/vnc.html  /usr/share/novnc/index.html
 
 ENV DISPLAY=:0.0 \
-    DISPLAY_WIDTH=1280 \
-    DISPLAY_HEIGHT=720
+    RESOLUTION=1280x720
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
   CMD wget --spider -q http://127.0.0.1:8080 || exit 1
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
 
 EXPOSE 8080
-
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
