@@ -1,4 +1,4 @@
-name: Docker build and push image
+name: DockerHub - Build and push image
 
 on:
   release:
