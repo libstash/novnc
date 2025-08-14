@@ -3,6 +3,7 @@ name: Chore - Check version of Alpine linux
 on:
   schedule:
     - cron: "*/10 * * * *"
+  workflow_dispatch:
 
 jobs:
   check-alpine-versions:
