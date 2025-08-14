@@ -64,7 +64,6 @@ jobs:
           git commit -m "📦 chore(deps): bump Alpine Linux to ${{ needs.check-alpine-versions.outputs.update_alpine }}"
 
       - name: Push changes
-        if: ${{ steps.compare.outputs.update_alpine == 'true' }}
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
