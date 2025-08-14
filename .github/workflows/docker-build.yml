@@ -21,7 +21,7 @@ jobs:
       - name: Set image version
         id: image-version
         run: |
-          TAG_NAME="v0.0.0"
+          TAG_NAME="${{ github.event.release.tag_name }}"
           echo "version=${TAG_NAME#v}" >> "$GITHUB_OUTPUT"
 
       - name: Set noVNC version
@@ -41,7 +41,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           load: true
-          tags: ${{ env.DOCKERHUB_REPOSITORY }}:latest
+          tags: ${{ vars.DOCKERHUB_REPOSITORY }}:latest
           build-args: |
             BUILD_DATE=${{ steps.build-date.outputs.date }}
             ALPINE_VERSION=${{ steps.load-env.outputs.alpine_version }}
@@ -50,8 +50,8 @@ jobs:
 
       - name: Test image
         run: |
-          docker image inspect --format='{{json .Config.Labels}}' ${{ env.DOCKERHUB_REPOSITORY }}:latest | jq
-          docker run --rm ${{ env.DOCKERHUB_REPOSITORY }}:latest true
+          docker image inspect --format='{{json .Config.Labels}}' ${{ vars.DOCKERHUB_REPOSITORY }}:latest | jq
+          docker run --rm ${{ vars.DOCKERHUB_REPOSITORY }}:latest true
 
       - name: Login to Docker Hub
         if: ${{ !env.ACT }}
@@ -65,5 +65,5 @@ jobs:
         with:
           push: ${{ !env.ACT }}
           tags: |
-            ${{ env.DOCKERHUB_REPOSITORY }}:${{ steps.image-version.outputs.version }}
-            ${{ env.DOCKERHUB_REPOSITORY }}:latest
+            ${{ vars.DOCKERHUB_REPOSITORY }}:${{ steps.image-version.outputs.version }}
+            ${{ vars.DOCKERHUB_REPOSITORY }}:latest
