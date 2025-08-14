@@ -24,13 +24,13 @@ jobs:
       - name: Get latest Alpine version
         id: latest-version
         run: |
-          ALPINE_DIGEST="$(curl -s 'https://hub.docker1.com/v2/repositories/library/alpine/tags?name=latest' | jq -r '.results[] | select(.name == "latest") | .digest')"
+          ALPINE_DIGEST="$(curl -s 'https://hub.docker.com/v2/repositories/library/alpine/tags?name=latest' | jq -r '.results[] | select(.name == "latest") | .digest')"
           ALPINE_LATEST_VERSION="$(curl -s 'https://hub.docker.com/v2/repositories/library/alpine/tags?page_size=100' \
           | jq -r '.results[] | select(.digest == "'$ALPINE_DIGEST'") | select(.name | test("^[0-9]+\\.[0-9]+$")) | .name' \
           | head -n 1)"
 
           if [ -z "$ALPINE_LATEST_VERSION" ]; then
-            echo "::error::Error: Unable to fetch current Alpine version"
+            echo "::error::Unable to fetch current Alpine version"
             exit 1
           fi
 
