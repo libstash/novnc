@@ -18,11 +18,17 @@ jobs:
           set +a
           echo "alpine_version=$ALPINE_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Set image version
-        id: image-version
+      - name: Set release version
+        id: release-version
         run: |
           TAG_NAME="${{ github.event.release.tag_name }}"
           echo "version=${TAG_NAME#v}" >> "$GITHUB_OUTPUT"
+
+          echo "release_tag_current=${{ vars.DOCKERHUB_REPOSITORY }}:${TAG_NAME#v}" >> "$GITHUB_OUTPUT"
+
+          if [ "${{ github.event.release.prerelease }}" = "false" ]; then
+            echo "release_tag_latest=${{ vars.DOCKERHUB_REPOSITORY }}:latest" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Set noVNC version
         id: novnc-version
@@ -41,17 +47,17 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           load: true
-          tags: ${{ vars.DOCKERHUB_REPOSITORY }}:latest
+          tags: ${{ steps.release-version.outputs.release_tag_current }}
           build-args: |
             BUILD_DATE=${{ steps.build-date.outputs.date }}
             ALPINE_VERSION=${{ steps.load-env.outputs.alpine_version }}
             NOVNC_VERSION=${{ steps.novnc-version.outputs.version }}
-            IMAGE_VERSION=${{ steps.image-version.outputs.version }}
+            IMAGE_VERSION=${{ steps.release-version.outputs.version }}
 
       - name: Test image
         run: |
-          docker image inspect --format='{{json .Config.Labels}}' ${{ vars.DOCKERHUB_REPOSITORY }}:latest | jq
-          docker run --rm ${{ vars.DOCKERHUB_REPOSITORY }}:latest true
+          docker image inspect --format='{{json .Config.Labels}}' ${{ steps.release-version.outputs.release_tag_current }} | jq
+          docker run --rm ${{ steps.release-version.outputs.release_tag_current }} true
 
       - name: Login to Docker Hub
         if: ${{ !env.ACT }}
@@ -64,6 +70,11 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: ${{ !env.ACT }}
+          build-args: |
+            BUILD_DATE=${{ steps.build-date.outputs.date }}
+            ALPINE_VERSION=${{ steps.load-env.outputs.alpine_version }}
+            NOVNC_VERSION=${{ steps.novnc-version.outputs.version }}
+            IMAGE_VERSION=${{ steps.release-version.outputs.version }}
           tags: |
-            ${{ vars.DOCKERHUB_REPOSITORY }}:${{ steps.image-version.outputs.version }}
-            ${{ vars.DOCKERHUB_REPOSITORY }}:latest
+            ${{ steps.release-version.outputs.release_tag_current }}
+            ${{ steps.release-version.outputs.release_tag_latest }}
